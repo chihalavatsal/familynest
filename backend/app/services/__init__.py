@@ -1,2 +1,4 @@
-"""FamilyNest Business Logic Services
-"""
+"""FamilyNest Services (Business Logic Layer)"""
+from app.services.auth_service import AuthService
+
+__all__ = ["AuthService"]

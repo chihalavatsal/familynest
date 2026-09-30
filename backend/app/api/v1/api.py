@@ -1,10 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from sqlalchemy import text
-from app.db.database import get_db, engine, get_redacted_database_url
+from app.db.database import get_db, get_redacted_database_url
 from app.core.config import settings
+from app.api.v1.auth import router as auth_router
 
 api_router = APIRouter()
+
+# Mount Authentication router (/api/v1/auth)
+api_router.include_router(auth_router)
 
 
 @api_router.get("/health", tags=["Health"])

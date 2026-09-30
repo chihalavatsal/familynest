@@ -4,6 +4,13 @@ Clean separation between database models and API schemas.
 Separate request and response schemas to protect private data.
 """
 
+from app.schemas.auth import (
+    RegisterRequest,
+    LoginRequest,
+    RefreshTokenRequest,
+    TokenResponse,
+    LogoutResponse,
+)
 from app.schemas.user import UserBase, UserCreate, UserUpdate, UserResponse
 from app.schemas.person import PersonBase, PersonCreate, PersonUpdate, PersonResponse, ProfileStatus
 from app.schemas.family import (
@@ -31,6 +38,11 @@ from app.schemas.invitation import (
 from app.schemas.audit_log import AuditLogBase, AuditLogResponse
 
 __all__ = [
+    "RegisterRequest",
+    "LoginRequest",
+    "RefreshTokenRequest",
+    "TokenResponse",
+    "LogoutResponse",
     "UserBase",
     "UserCreate",
     "UserUpdate",
