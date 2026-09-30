@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Users, HeartHandshake, Network, ShieldCheck, Home, CheckCircle2 } from 'lucide-react';
 
 export function App() {
