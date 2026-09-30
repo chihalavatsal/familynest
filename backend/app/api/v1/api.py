@@ -4,11 +4,15 @@ from sqlalchemy import text
 from app.db.database import get_db, get_redacted_database_url
 from app.core.config import settings
 from app.api.v1.auth import router as auth_router
+from app.api.v1.people import router as people_router
 
 api_router = APIRouter()
 
 # Mount Authentication router (/api/v1/auth)
 api_router.include_router(auth_router)
+
+# Mount People router (/api/v1/people)
+api_router.include_router(people_router)
 
 
 @api_router.get("/health", tags=["Health"])

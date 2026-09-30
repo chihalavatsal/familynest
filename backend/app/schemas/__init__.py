@@ -12,7 +12,14 @@ from app.schemas.auth import (
     LogoutResponse,
 )
 from app.schemas.user import UserBase, UserCreate, UserUpdate, UserResponse
-from app.schemas.person import PersonBase, PersonCreate, PersonUpdate, PersonResponse, ProfileStatus
+from app.schemas.person import (
+    PersonCreate,
+    PersonUpdate,
+    PersonListItem,
+    PersonDetailResponse,
+    PersonListResponse,
+    ProfileStatus,
+)
 from app.schemas.family import (
     FamilyBase,
     FamilyCreate,
@@ -47,10 +54,11 @@ __all__ = [
     "UserCreate",
     "UserUpdate",
     "UserResponse",
-    "PersonBase",
     "PersonCreate",
     "PersonUpdate",
-    "PersonResponse",
+    "PersonListItem",
+    "PersonDetailResponse",
+    "PersonListResponse",
     "ProfileStatus",
     "FamilyBase",
     "FamilyCreate",
