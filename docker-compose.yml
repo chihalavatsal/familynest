@@ -1,0 +1,58 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: familynest_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-familynest}
+      POSTGRES_USER: ${POSTGRES_USER:-familynest_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-familynest_dev_password}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-familynest_user} -d ${POSTGRES_DB:-familynest}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - familynest_network
+
+  # Prepared for subsequent development phases:
+  # backend:
+  #   build:
+  #     context: ./backend
+  #     dockerfile: Dockerfile
+  #   container_name: familynest_backend
+  #   restart: unless-stopped
+  #   environment:
+  #     - DATABASE_URL=postgresql+psycopg://${POSTGRES_USER:-familynest_user}:${POSTGRES_PASSWORD:-familynest_dev_password}@postgres:5432/${POSTGRES_DB:-familynest}
+  #   ports:
+  #     - "8000:8000"
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #   networks:
+  #     - familynest_network
+
+  # frontend:
+  #   build:
+  #     context: ./frontend
+  #     dockerfile: Dockerfile
+  #   container_name: familynest_frontend
+  #   restart: unless-stopped
+  #   ports:
+  #     - "5173:5173"
+  #   depends_on:
+  #     - backend
+  #   networks:
+  #     - familynest_network
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  familynest_network:
+    driver: bridge
