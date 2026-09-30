@@ -1,20 +1,27 @@
 """FamilyNest Database Models
 
-Core Architecture Rule:
-A USER is not the same thing as a PERSON.
-A person can exist without an account (e.g. an unclaimed family member).
-Later, a user can claim that existing person record.
-
-Core Entities planned for future phases:
-- users: Authentication accounts, credentials, status
-- people: Human identity records (living or deceased, claimed or unclaimed)
-- families: Family network hubs (a person can belong to multiple family networks)
-- family_members: Associations linking people to family networks with roles
-- relationships: Fundamental relationships (parent, child, spouse, divorced_spouse, sibling, guardian)
-- invitations: Family network and account claim invitations
-- audit_logs: Tracking changes and privacy actions
+Export of all SQLAlchemy 2.x declarative models.
 """
 
-from app.db.database import Base
+from app.db.models.base import Base
+from app.db.models.user import User
+from app.db.models.person import Person, ALLOWED_PROFILE_STATUSES
+from app.db.models.family import Family, FamilyMember, ALLOWED_FAMILY_ROLES
+from app.db.models.relationship import Relationship, ALLOWED_RELATIONSHIP_TYPES
+from app.db.models.invitation import Invitation, ALLOWED_INVITATION_STATUSES
+from app.db.models.audit_log import AuditLog
 
-__all__ = ["Base"]
+__all__ = [
+    "Base",
+    "User",
+    "Person",
+    "Family",
+    "FamilyMember",
+    "Relationship",
+    "Invitation",
+    "AuditLog",
+    "ALLOWED_PROFILE_STATUSES",
+    "ALLOWED_FAMILY_ROLES",
+    "ALLOWED_RELATIONSHIP_TYPES",
+    "ALLOWED_INVITATION_STATUSES",
+]

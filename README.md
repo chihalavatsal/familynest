@@ -30,137 +30,95 @@ $$\text{People} + \text{Relationships} + \text{Family Networks}$$
 
 ### Backend
 * **Language & Framework**: Python 3.10+ with FastAPI
-* **ORM**: SQLAlchemy 2.x
+* **ORM**: SQLAlchemy 2.x (Modern `DeclarativeBase`, `Mapped`, `mapped_column`, typed relationships)
 * **Database Migrations**: Alembic
 * **Data Validation**: Pydantic v2
-* **Authentication**: JWT with Argon2 / bcrypt password hashing
+* **Authentication**: JWT with Argon2 / bcrypt password hashing (prepared)
 * **API Style**: REST API with standard versioning under `/api/v1/`
 
 ### Database & Infrastructure
-* **Database**: Local PostgreSQL 16
-* **Containerization**: Docker & Docker Compose with persistent local volumes
-* **Host Requirement**: No third-party cloud database dependencies (no Supabase, Firebase, PlanetScale, etc.)
+* **Primary Database**: **Neon PostgreSQL** (serverless PostgreSQL with native UUID and JSONB support)
+* **SSL Requirement**: `sslmode=require` is enforced on all Neon connections.
+* **Containerization**: Docker & Docker Compose configured for Neon cloud connectivity (local PostgreSQL container available optionally for offline work).
 
 ---
 
-## 3. Local Development Prerequisites
+## 3. Database Architecture & Core Tables
 
-Ensure the following tools are available on your system:
-* **Operating System**: Linux (Ubuntu 22.04+ recommended), macOS, or Windows WSL2
-* **Docker & Docker Compose**: Docker 24+ with Compose v2
-* **Python**: Python 3.10+ (with `venv` and `pip`)
-* **Node.js**: Node.js 18+ (Node 20 LTS recommended) and `npm`
-* **Git**
+FamilyNest Phase 1 implements seven foundational tables:
 
----
-
-## 4. Planned Project Structure
-
-```text
-familynest/
-├── .env                  # Local environment configuration (Git-ignored)
-├── .env.example          # Template environment configuration
-├── .gitignore            # Git ignore rules for Python, Node, environment, etc.
-├── docker-compose.yml    # Local Docker Compose setup (PostgreSQL & persistent volume)
-├── README.md             # Project documentation and architecture guide
-│
-├── backend/              # FastAPI Backend
-│   ├── alembic/          # Alembic database migration environment
-│   │   ├── env.py
-│   │   ├── script.py.mako
-│   │   └── versions/
-│   ├── alembic.ini       # Alembic migration configuration
-│   ├── app/
-│   │   ├── main.py       # FastAPI application factory and routing setup
-│   │   ├── core/         # Settings, configuration, and security helpers
-│   │   │   ├── config.py
-│   │   │   └── security.py
-│   │   ├── db/           # SQLAlchemy 2.x engine, session, and models
-│   │   │   ├── database.py
-│   │   │   └── models/
-│   │   │       └── __init__.py
-│   │   ├── schemas/      # Pydantic validation and serialization schemas
-│   │   │   └── __init__.py
-│   │   ├── api/          # API routers and endpoints
-│   │   │   ├── __init__.py
-│   │   │   └── v1/
-│   │   │       ├── __init__.py
-│   │   │       └── api.py
-│   │   ├── services/     # Domain business logic
-│   │   │   └── __init__.py
-│   │   ├── repositories/ # Data access abstraction layer
-│   │   │   └── __init__.py
-│   │   └── tests/        # Pytest test suite
-│   │       ├── __init__.py
-│   │       └── test_health.py
-│   ├── Dockerfile
-│   ├── .dockerignore
-│   └── requirements.txt
-│
-└── frontend/             # React + TypeScript + Vite + Tailwind CSS Frontend
-    ├── index.html        # Entry HTML with mobile viewport configuration
-    ├── package.json      # Dependencies and scripts
-    ├── tsconfig.json     # TypeScript configuration
-    ├── tsconfig.node.json
-    ├── vite.config.ts    # Vite configuration
-    ├── tailwind.config.js# Custom warm theme & typography
-    ├── postcss.config.js
-    ├── Dockerfile
-    ├── .dockerignore
-    └── src/
-        ├── App.tsx       # Welcome interface and readiness check
-        ├── main.tsx      # React root bootstrap
-        ├── index.css     # Global styles & Tailwind directives
-        ├── components/   # UI components
-        ├── pages/        # View screens
-        ├── services/     # API client services
-        └── types/        # TypeScript domain models and interfaces
-```
+1. **`users`**: Authentication credentials, verification status, and timestamps.
+2. **`people`**: Real human identity records (living or deceased). Supports unclaimed records and account claiming.
+3. **`families`**: Independent family network circles.
+4. **`family_members`**: Links people to family circles with specific roles (`owner`, `admin`, `member`, `invited`). Supports membership in multiple families.
+5. **`relationships`**: Fundamental relationships (`parent`, `child`, `spouse`, `divorced_spouse`, `sibling`, `guardian`) with date spans and historical preservation. Self-relationships (`person_a_id == person_b_id`) are prevented via database CHECK constraints.
+6. **`invitations`**: Family network and claiming invitations with secure tokens and status constraints.
+7. **`audit_logs`**: System audit trail capturing actor, entity, action, and JSONB metadata.
 
 ---
 
-## 5. Getting Started (Initialization Phase)
+## 4. Environment & Database Configuration
 
-### 1. Configure Environment
-Copy `.env.example` to `.env` if not already present:
+### Environment Setup
+FamilyNest uses environment variables for all configuration.
+
+Copy the template file to `.env`:
 ```bash
 cp .env.example .env
 ```
 
-### 2. Start PostgreSQL via Docker Compose
-To run PostgreSQL in the background with persistent volume storage:
-```bash
-docker compose up -d postgres
-```
-Check health:
-```bash
-docker compose ps
+Configure your Neon connection string in `.env`:
+```env
+DATABASE_URL=postgresql+psycopg://<user>:<password>@<host>/<database>?sslmode=require
 ```
 
-### 3. Backend Setup
-```bash
-cd backend
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-
-# Run development server
-uvicorn app.main:app --reload --port 8000
-```
-FastAPI interactive docs will be available at: [http://localhost:8000/api/v1/docs](http://localhost:8000/api/v1/docs)
-
-### 4. Frontend Setup
-```bash
-cd frontend
-npm install
-npm run dev
-```
-The Vite development server will be available at: [http://localhost:5173](http://localhost:5173)
+> [!IMPORTANT]
+> **Security Rules:**
+> * Never commit `.env` to Git.
+> * Never expose the Neon connection string, usernames, or passwords in commits, issues, or logs.
+> * Use `get_redacted_database_url()` for any diagnostic logging.
 
 ---
 
-## 6. Development Principles & Future Phases
+## 5. Database Migrations (Alembic)
 
-1. **Phase 0 (Current)**: Project initialization and foundational structure.
-2. **Phase 1 (Upcoming)**: Database schemas, migrations, and core entities (`users`, `people`, `families`, `relationships`).
-3. **Phase 2+**: Authentication, family network contribution, relationship graph engine, mobile layout, and Capacitor Android bundling.
+Alembic manages all schema migrations dynamically reading `DATABASE_URL` from `.env`.
+
+### Apply Migrations
+To upgrade the database to the latest schema:
+```bash
+cd backend
+alembic upgrade head
+```
+
+### Rollback Migrations
+To revert the most recent migration:
+```bash
+cd backend
+alembic downgrade -1
+```
+
+### Create a New Migration
+To auto-generate a migration based on model changes:
+```bash
+cd backend
+alembic revision --autogenerate -m "description_of_changes"
+```
+
+### Verify Live Database Schema
+To inspect table definitions, foreign keys, constraints, and indexes on the active database:
+```bash
+python -m app.db.verify_db
+```
+
+---
+
+## 6. Running Tests
+
+Execute the comprehensive database and integrity test suite:
+```bash
+cd backend
+pytest app/tests/test_database.py -v
+```
+
+Tests run within isolated transactions and roll back after execution, ensuring persistent Neon data is never polluted or destroyed.

@@ -9,17 +9,26 @@ backend_dir = Path(__file__).resolve().parent.parent
 sys.path.append(str(backend_dir))
 
 from app.core.config import settings
-from app.db.database import Base
-# Import models here once created so that Alembic can detect them for autogenerate
-import app.db.models  # noqa
+from app.db.database import normalize_database_url
+from app.db.models.base import Base
+# Import models so Alembic metadata includes all entities
+import app.db.models  # noqa: F401
 
 config = context.config
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# Set SQLAlchemy URL dynamically from settings
-config.set_main_option("sqlalchemy.url", settings.DATABASE_URL or "postgresql+psycopg://familynest_user:familynest_dev_password@localhost:5432/familynest")
+# Set database URL dynamically from environment / settings
+raw_url = settings.DATABASE_URL or ""
+normalized_url = normalize_database_url(raw_url)
+
+if not normalized_url:
+    # Set dummy URL so offline inspections don't fail immediately,
+    # but online execution will validate presence of real DATABASE_URL.
+    config.set_main_option("sqlalchemy.url", "postgresql+psycopg://placeholder:placeholder@localhost/placeholder")
+else:
+    config.set_main_option("sqlalchemy.url", normalized_url)
 
 target_metadata = Base.metadata
 
@@ -39,9 +48,18 @@ def run_migrations_offline() -> None:
 
 
 def run_migrations_online() -> None:
-    """Run migrations in 'online' mode."""
+    """Run migrations in 'online' mode with SSL support."""
+    if not normalized_url:
+        raise RuntimeError(
+            "DATABASE_URL is not set. Please configure DATABASE_URL in your .env file "
+            "with your Neon PostgreSQL connection string (e.g. postgresql+psycopg://user:password@host/database?sslmode=require)."
+        )
+
+    configuration = config.get_section(config.config_ini_section, {})
+    configuration["sqlalchemy.url"] = normalized_url
+
     connectable = engine_from_config(
-        config.get_section(config.config_ini_section, {}),
+        configuration,
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
     )

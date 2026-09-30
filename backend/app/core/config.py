@@ -1,5 +1,5 @@
-from typing import List, Union
-from pydantic import AnyHttpUrl, field_validator
+from typing import List, Optional
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 import os
 from pathlib import Path
@@ -16,21 +16,15 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8  # 8 days
 
-    # Database
-    POSTGRES_SERVER: str = "localhost"
-    POSTGRES_PORT: int = 5432
-    POSTGRES_DB: str = "familynest"
-    POSTGRES_USER: str = "familynest_user"
-    POSTGRES_PASSWORD: str = "familynest_dev_password"
-    DATABASE_URL: str | None = None
+    # Neon PostgreSQL Database Connection URL
+    DATABASE_URL: Optional[str] = None
 
     @field_validator("DATABASE_URL", mode="before")
     @classmethod
-    def assemble_db_connection(cls, v: str | None, values) -> str:
-        if isinstance(v, str) and v:
-            return v
-        # Fallback to constructing from components if not explicitly provided
-        return "postgresql+psycopg://familynest_user:familynest_dev_password@localhost:5432/familynest"
+    def clean_database_url(cls, v: Optional[str]) -> Optional[str]:
+        if isinstance(v, str):
+            return v.strip("'\" \t\r\n")
+        return v
 
     # CORS
     BACKEND_CORS_ORIGINS: List[str] = [

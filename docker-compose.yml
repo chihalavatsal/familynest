@@ -1,57 +1,66 @@
+# ==============================================================================
+# FamilyNest Docker Compose Configuration
+# 
+# DATABASE ARCHITECTURE NOTE:
+# The primary database for FamilyNest is Neon PostgreSQL (cloud serverless).
+# The backend connects to Neon via the DATABASE_URL environment variable with SSL.
+# The local PostgreSQL container is retained below as an optional, commented-out
+# fallback/reference for offline development, but is NOT required.
+# ==============================================================================
+
 services:
-  postgres:
-    image: postgres:16-alpine
-    container_name: familynest_postgres
+  # Backend FastAPI Service (configured for Neon PostgreSQL)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: familynest_backend
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-familynest}
-      POSTGRES_USER: ${POSTGRES_USER:-familynest_user}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-familynest_dev_password}
+      - DATABASE_URL=${DATABASE_URL}
+      - ENVIRONMENT=${ENVIRONMENT:-development}
+      - SECRET_KEY=${SECRET_KEY}
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-familynest_user} -d ${POSTGRES_DB:-familynest}"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
+      - "8000:8000"
     networks:
       - familynest_network
 
-  # Prepared for subsequent development phases:
-  # backend:
-  #   build:
-  #     context: ./backend
-  #     dockerfile: Dockerfile
-  #   container_name: familynest_backend
+  # Frontend Service (React + Vite)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: familynest_frontend
+    restart: unless-stopped
+    environment:
+      - VITE_API_URL=${VITE_API_URL:-http://localhost:8000/api/v1}
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    networks:
+      - familynest_network
+
+  # OPTIONAL / LOCAL POSTGRESQL FALLBACK ONLY
+  # Uncomment only if developing completely offline without Neon.
+  # postgres:
+  #   image: postgres:16-alpine
+  #   container_name: familynest_postgres_local
   #   restart: unless-stopped
   #   environment:
-  #     - DATABASE_URL=postgresql+psycopg://${POSTGRES_USER:-familynest_user}:${POSTGRES_PASSWORD:-familynest_dev_password}@postgres:5432/${POSTGRES_DB:-familynest}
+  #     POSTGRES_DB: familynest
+  #     POSTGRES_USER: familynest_user
+  #     POSTGRES_PASSWORD: familynest_dev_password
   #   ports:
-  #     - "8000:8000"
-  #   depends_on:
-  #     postgres:
-  #       condition: service_healthy
+  #     - "5432:5432"
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
   #   networks:
   #     - familynest_network
 
-  # frontend:
-  #   build:
-  #     context: ./frontend
-  #     dockerfile: Dockerfile
-  #   container_name: familynest_frontend
-  #   restart: unless-stopped
-  #   ports:
-  #     - "5173:5173"
-  #   depends_on:
-  #     - backend
-  #   networks:
-  #     - familynest_network
-
-volumes:
-  postgres_data:
-    driver: local
+# volumes:
+#   postgres_data:
+#     driver: local
 
 networks:
   familynest_network:
