@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     DEBUG: bool = True
 
     # Security / JWT Authentication
-    JWT_SECRET_KEY: str = "familynest_dev_jwt_secret_key_change_in_production_32chars"
+    JWT_SECRET_KEY: str # Required. No insecure fallback.
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
@@ -42,9 +42,16 @@ class Settings(BaseSettings):
     # CORS
     BACKEND_CORS_ORIGINS: List[str] = [
         "http://localhost:5173",
+        "http://localhost:5174",
         "http://localhost:3000",
         "http://127.0.0.1:5173",
+        "https://familynest-kappa.vercel.app",
     ]
+
+    # Google OAuth2
+    GOOGLE_CLIENT_ID: Optional[str] = None
+    GOOGLE_CLIENT_SECRET: Optional[str] = None
+    FRONTEND_URL: str = "http://localhost:5173"
 
     model_config = SettingsConfigDict(
         env_file=os.path.join(Path(__file__).resolve().parent.parent.parent.parent, ".env"),
