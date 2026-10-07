@@ -5,19 +5,26 @@ from app.api.v1.api import api_router
 
 from contextlib import asynccontextmanager
 import asyncio
-from app.tasks.life_events_cron import life_event_scheduler
+import os
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup
-    task = asyncio.create_task(life_event_scheduler())
+    # Startup — skip background scheduler in serverless (Vercel)
+    task = None
+    if os.environ.get("VERCEL") != "1":
+        try:
+            from app.tasks.life_events_cron import life_event_scheduler
+            task = asyncio.create_task(life_event_scheduler())
+        except Exception:
+            pass
     yield
     # Shutdown
-    task.cancel()
-    try:
-        await task
-    except asyncio.CancelledError:
-        pass
+    if task:
+        task.cancel()
+        try:
+            await task
+        except asyncio.CancelledError:
+            pass
 
 
 
