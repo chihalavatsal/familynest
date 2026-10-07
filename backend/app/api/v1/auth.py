@@ -264,7 +264,7 @@ def forgot_password(req: ForgotPasswordRequest, db: Session = Depends(get_db)):
     
     if not success:
         import traceback
-        return {"message": "Verification code has been sent to your email.", "debug_email_status": "FAILED", "is_configured": getattr(email_service, 'is_configured', False)}
+        return {"message": "Verification code has been sent to your email.", "debug_email_status": "FAILED", "is_configured": getattr(email_service, 'is_configured', False), "error": getattr(email_service, 'last_error', 'unknown')}
     
     return {"message": "Verification code has been sent to your email.", "debug_email_status": "SUCCESS"}
 

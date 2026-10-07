@@ -38,6 +38,7 @@ class EmailService:
             return True
         except Exception as e:
             logger.error(f"Failed to send email to {to_email}: {str(e)}")
+            self.last_error = str(e)
             return False
 
     def send_invitation_email(self, to_email: str, inviter_name: str, person_name: str, family_name: str, frontend_url: str):
