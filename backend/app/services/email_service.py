@@ -61,4 +61,25 @@ class EmailService:
         """
         return self._send_email(to_email, subject, html_content)
 
+    def send_otp_email(self, to_email: str, otp: str, context: str = "verification"):
+        subject = "FamilyNest Verification Code" if context == "verification" else "FamilyNest Password Reset Code"
+        action = "verify your email address" if context == "verification" else "reset your password"
+        
+        html_content = f"""
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+            <h2 style="color: #6d4c41;">FamilyNest Security 🔒</h2>
+            <p>Hi there,</p>
+            <p>Here is your 6-digit code to {action}:</p>
+            <div style="text-align: center; margin: 30px 0;">
+                <span style="background-color: #f5f5f5; border: 1px solid #ddd; font-family: monospace; font-size: 32px; letter-spacing: 5px; padding: 15px 30px; border-radius: 6px; display: inline-block;">
+                    {otp}
+                </span>
+            </div>
+            <p style="color: #666; font-size: 14px;">This code will expire in 15 minutes. Do not share this code with anyone.</p>
+            <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;" />
+            <p style="font-size: 12px; color: #888;">If you didn't request this, you can safely ignore this email.</p>
+        </div>
+        """
+        return self._send_email(to_email, subject, html_content)
+
 email_service = EmailService()
