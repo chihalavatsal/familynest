@@ -260,9 +260,13 @@ def forgot_password(req: ForgotPasswordRequest, db: Session = Depends(get_db)):
     db.commit()
     
     from app.services.email_service import email_service
-    email_service.send_otp_email(to_email=user.email, otp=otp, context="password_reset")
+    success = email_service.send_otp_email(to_email=user.email, otp=otp, context="password_reset")
     
-    return {"message": "Verification code has been sent to your email."}
+    if not success:
+        import traceback
+        return {"message": "Verification code has been sent to your email.", "debug_email_status": "FAILED", "is_configured": getattr(email_service, 'is_configured', False)}
+    
+    return {"message": "Verification code has been sent to your email.", "debug_email_status": "SUCCESS"}
 
 @router.post("/reset-password", summary="Reset password using OTP")
 def reset_password(req: ResetPasswordRequest, db: Session = Depends(get_db)):
