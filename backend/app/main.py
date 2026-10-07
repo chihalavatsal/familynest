@@ -72,3 +72,15 @@ def root():
         "docs": f"{settings.API_V1_STR}/docs",
         "health": f"{settings.API_V1_STR}/health",
     }
+
+from fastapi.responses import JSONResponse
+import traceback
+from fastapi import Request
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    err_msg = traceback.format_exc()
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Internal Server Error", "traceback": err_msg}
+    )
