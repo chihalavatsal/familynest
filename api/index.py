@@ -1,7 +1,7 @@
-import sys
 import os
+import sys
 
-# Add the backend directory to Python path so we can import the app
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'backend'))
+# Add the root directory to sys.path so 'backend' can be resolved
+sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
-from app.main import app
+from backend.app.main import app
