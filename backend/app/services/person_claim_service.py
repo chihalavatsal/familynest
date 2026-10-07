@@ -21,6 +21,8 @@ from app.schemas.invitation import (
     INVITATION_TYPE_CLAIM,
 )
 from app.schemas.relationship_graph import PersonListItem
+from app.services.email_service import email_service
+from app.core.config import settings
 
 
 class PersonClaimService:
@@ -131,6 +133,30 @@ class PersonClaimService:
             self.db.add(audit)
             self.db.commit()
             self.db.refresh(invitation)
+            
+            # Send Email via Brevo
+            if invitation.invited_email:
+                inviter = self.db.query(User).filter(User.id == user_id).first()
+                inviter_name = inviter.email.split('@')[0] if inviter else "Someone"
+                
+                # Fetch family name if available
+                family_name = "your"
+                if person.family_id:
+                    from app.db.models.family import Family
+                    family = self.db.query(Family).filter(Family.id == person.family_id).first()
+                    if family:
+                        family_name = family.name
+
+                person_name = f"{person.first_name} {person.last_name or ''}".strip()
+                
+                email_service.send_invitation_email(
+                    to_email=invitation.invited_email,
+                    inviter_name=inviter_name,
+                    person_name=person_name,
+                    family_name=family_name,
+                    frontend_url=settings.FRONTEND_URL
+                )
+
         except Exception:
             self.db.rollback()
             raise

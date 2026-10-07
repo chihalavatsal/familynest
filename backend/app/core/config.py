@@ -39,6 +39,14 @@ class Settings(BaseSettings):
             return v.strip("'\" \t\r\n")
         return v
 
+    # SMTP / Email Configuration (Brevo)
+    SMTP_HOST: Optional[str] = None
+    SMTP_PORT: int = 587
+    SMTP_USER: Optional[str] = None
+    SMTP_PASSWORD: Optional[str] = None
+    EMAILS_FROM_EMAIL: str = "noreply@familynest.app"
+    EMAILS_FROM_NAME: str = "FamilyNest"
+
     # CORS
     BACKEND_CORS_ORIGINS: List[str] = [
         "http://localhost:5173",
