@@ -259,8 +259,8 @@ def forgot_password(req: ForgotPasswordRequest, db: Session = Depends(get_db)):
     user.otp_expires_at = datetime.now(timezone.utc) + timedelta(minutes=15)
     db.commit()
     
-    logger.info(f"PASSWORD RESET OTP FOR {user.email}: {otp}")
-    print(f"\n\n{'='*50}\nPASSWORD RESET OTP FOR {user.email}: {otp}\n{'='*50}\n\n")
+    from app.services.email_service import email_service
+    email_service.send_otp_email(to_email=user.email, otp=otp, context="password_reset")
     
     return {"message": "Verification code has been sent to your email."}
 
@@ -306,15 +306,13 @@ def resend_otp(req: ResendOTPRequest, db: Session = Depends(get_db)):
         
     import random
     from datetime import datetime, timezone, timedelta
-    import logging
-    logger = logging.getLogger(__name__)
     
     otp = f"{random.randint(100000, 999999)}"
     user.otp_code = otp
     user.otp_expires_at = datetime.now(timezone.utc) + timedelta(minutes=15)
     db.commit()
     
-    logger.info(f"\n\n{'='*50}\nOTP FOR {user.email}: {otp}\n{'='*50}\n\n")
-    print(f"\n\n{'='*50}\nOTP FOR {user.email}: {otp}\n{'='*50}\n\n")
+    from app.services.email_service import email_service
+    email_service.send_otp_email(to_email=user.email, otp=otp, context="verification")
     
     return {"message": "A new verification code has been sent."}

@@ -67,8 +67,10 @@ class AuthService:
         )
 
         
-        # In a real app, you would send an email here. For now, print to console!
-        logger.info(f"\n\n==================================================\nOTP FOR {normalized_email}: {otp}\n==================================================\n\n")
+        # Send OTP via Brevo
+        from app.services.email_service import email_service
+        email_service.send_otp_email(to_email=normalized_email, otp=otp, context="verification")
+        
         logger.info(f"Generated verification OTP for {normalized_email[:3]}...")
         
         return user
