@@ -1,6 +1,6 @@
 import type { ApiError } from '../types';
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'https://familynest-uwxe.onrender.com/api/v1';
+const BASE_URL = import.meta.env.VITE_API_URL || '/api/v1';
 
 // Token storage keys — minimise what's in localStorage
 const ACCESS_TOKEN_KEY = 'fn_at';
