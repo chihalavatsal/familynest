@@ -74,6 +74,10 @@ class Person(Base):
         Date,
         nullable=True,
     )
+    death_place: Mapped[Optional[str]] = mapped_column(
+        String(255),
+        nullable=True,
+    )
     birth_place: Mapped[Optional[str]] = mapped_column(
         String(255),
         nullable=True,

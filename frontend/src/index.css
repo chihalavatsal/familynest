@@ -1,21 +1,235 @@
+@import './styles/tokens.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* =========================================
+   GLOBAL BASE STYLES
+   ========================================= */
+
 :root {
-  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   color-scheme: light;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: 1.6;
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Touch targets >= 44px */
+/* Focus styles — accessible */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(100, 70, 50, 0.18);
+  border-radius: 99px;
+}
+
+/* Selection */
+::selection {
+  background-color: #f2ebe4;
+  color: var(--color-text);
+}
+
+/* =========================================
+   TYPOGRAPHY UTILITIES
+   ========================================= */
+
+.fn-page-title {
+  font-family: var(--font-serif);
+  font-size: var(--text-2xl);
+  font-weight: 600;
+  color: var(--color-text);
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.fn-section-title {
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.fn-card-title {
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.fn-body {
+  font-size: var(--text-base);
+  color: var(--color-text);
+  line-height: 1.6;
+}
+
+.fn-secondary {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+.fn-muted {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  line-height: 1.4;
+}
+
+/* =========================================
+   LAYOUT
+   ========================================= */
+
+/* Sidebar layout */
+.fn-app-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.fn-sidebar {
+  width: 240px;
+  flex-shrink: 0;
+  background-color: var(--color-nav-bg);
+  border-right: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  z-index: 40;
+  overflow-y: auto;
+  transition: transform var(--transition-base);
+}
+
+.fn-main-content {
+  flex: 1;
+  min-width: 0;
+  padding-left: 240px;
+}
+
+@media (max-width: 768px) {
+  .fn-sidebar {
+    transform: translateX(-100%);
+  }
+  .fn-sidebar.open {
+    transform: translateX(0);
+  }
+  .fn-main-content {
+    padding-left: 0;
+  }
+}
+
+/* =========================================
+   TOUCH TARGET
+   ========================================= */
+
 .touch-target {
   min-height: 44px;
   min-width: 44px;
+}
+
+/* =========================================
+   REDUCED MOTION
+   ========================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* =========================================
+   CUSTOM ANIMATIONS
+   ========================================= */
+
+@keyframes fn-fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fn-skeleton-shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+.fn-fade-in {
+  animation: fn-fade-in 200ms ease forwards;
+}
+
+.fn-skeleton {
+  background: linear-gradient(
+    90deg,
+    #f0ebe6 25%,
+    #e8e0d9 50%,
+    #f0ebe6 75%
+  );
+  background-size: 400px 100%;
+  animation: fn-skeleton-shimmer 1.4s ease infinite;
+  border-radius: var(--radius-md);
+}
+
+/* Overlay for mobile nav */
+.fn-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.3);
+  z-index: 30;
+  backdrop-filter: blur(1px);
+}
+
+/* Custom scrollbar for modals */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.2);
 }

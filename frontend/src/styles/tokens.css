@@ -1,0 +1,85 @@
+/**
+ * FamilyNest Design Tokens
+ * Semantic CSS variables for the design system.
+ * All components should reference these tokens, not raw Tailwind colors.
+ */
+
+:root {
+  /* Background layers */
+  --color-bg: #fdf9f6;
+  --color-surface: #ffffff;
+  --color-surface-elevated: #fffdfb;
+  --color-surface-muted: #f9f4ef;
+
+  /* Brand / Primary */
+  --color-primary: #92614a;
+  --color-primary-soft: #f2ebe4;
+  --color-primary-hover: #7d5240;
+  --color-primary-text: #ffffff;
+
+  /* Text hierarchy */
+  --color-text: #1c1917;
+  --color-text-secondary: #57534e;
+  --color-text-muted: #a8a29e;
+  --color-text-inverse: #ffffff;
+
+  /* Border */
+  --color-border: rgba(100, 70, 50, 0.12);
+  --color-border-strong: rgba(100, 70, 50, 0.24);
+
+  /* Semantic */
+  --color-success: #4d7c5a;
+  --color-success-bg: #f0faf3;
+  --color-warning: #a16207;
+  --color-warning-bg: #fefce8;
+  --color-error: #b91c1c;
+  --color-error-bg: #fef2f2;
+  --color-info: #1d4ed8;
+  --color-info-bg: #eff6ff;
+
+  /* Navigation */
+  --color-nav-bg: #ffffff;
+  --color-nav-active-bg: #f2ebe4;
+  --color-nav-active-text: #92614a;
+  --color-nav-hover-bg: #f9f4ef;
+
+  /* Radius */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --radius-full: 9999px;
+
+  /* Shadow */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.07), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08), 0 1px 4px rgba(0, 0, 0, 0.05);
+
+  /* Spacing scale */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* Typography */
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-serif: 'Lora', Georgia, serif;
+
+  --text-xs: 11px;
+  --text-sm: 13px;
+  --text-base: 15px;
+  --text-lg: 17px;
+  --text-xl: 20px;
+  --text-2xl: 24px;
+  --text-3xl: 30px;
+
+  /* Transitions */
+  --transition-fast: 120ms ease;
+  --transition-base: 200ms ease;
+}

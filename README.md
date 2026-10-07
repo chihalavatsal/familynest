@@ -151,14 +151,192 @@ Authorization: Bearer <jwt_access_token>
 
 ---
 
-## 5. Environment & Database Configuration
+## 5. People Domain API (Phase 3)
+
+The People API manages canonical human records (`Person`), enforcing the strict `USER ≠ PERSON` rule. A Person record can exist independently of an application User account.
+
+### Endpoints
+* `POST /api/v1/people` - Create a new person (creator becomes `created_by_user_id`).
+* `GET /api/v1/people` - List accessible people (paginated, searchable, secure).
+* `GET /api/v1/people/{id}` - Get person details (includes phone/email if authorized).
+* `PATCH /api/v1/people/{id}` - Partially update a person record.
+
+### Security Rules
+* All endpoints require an authenticated access token.
+* `created_by_user_id` is always derived from the authenticated token.
+* Attempting to access an unauthorized person returns a privacy-preserving `404 Not Found`.
+
+---
+
+## 6. Family Network & Membership API (Phase 4)
+
+FamilyNest models Families as independent networks/groups. A person can belong to multiple family networks. 
+
+### Critical Architecture Rules
+1. **Marriage does NOT merge families:** Family membership is completely independent of the relationship graph. If Person A (Patel Family) and Person B (Shah Family) marry, their family networks remain separate. No family merging happens automatically.
+2. **Membership does NOT imply relationship:** Adding Person A and Person B to the same family does NOT magically make them siblings, parents, or spouses.
+3. **No automatic Person creation:** Creating a Family or adding a member requires existing Person records. The API does not create fake or shadow Person records.
+4. **Ownership:** A Family creator automatically becomes the `owner` if their User account has a claimed Person.
+
+### Endpoints
+* `POST /api/v1/families` - Create family network.
+* `GET /api/v1/families` - List accessible families (paginated, creator/member access only).
+* `GET /api/v1/families/{id}` - Get family detail.
+* `PATCH /api/v1/families/{id}` - Update family metadata (owner/admin only).
+* `DELETE /api/v1/families/{id}` - Delete family network (owner only). Safely cascades to memberships, leaving People and Relationships untouched.
+
+### Membership Endpoints
+* `POST /api/v1/families/{id}/members` - Add existing person to family.
+* `GET /api/v1/families/{id}/members` - List family members.
+* `PATCH /api/v1/families/{id}/members/{person_id}` - Update member role (`admin`, `member`, etc. `owner` assignment blocked).
+* `DELETE /api/v1/families/{id}/members/{person_id}` - Remove member from family.
+
+---
+
+## 7. Relationship Graph API (Phase 5)
+
+Relationships represent the canonical edge connections between People. Like People, the Relationship graph is strictly independent of User accounts and Family networks.
+
+### Supported Fundamental Types
+* `parent` (`person_a` = parent, `person_b` = child)
+* `child` (`person_a` = child, `person_b` = parent)
+* `spouse` (symmetric)
+* `divorced_spouse` (symmetric)
+* `sibling` (symmetric)
+* `guardian` (`person_a` = guardian, `person_b` = dependent)
+
+*Note: Derived relationships (grandparent, uncle, cousin) are dynamically calculated by the engine and are not stored in the database.*
+
+### Core Invariants
+1. **No Auto-Merging:** Marriages (`spouse`) or divorces (`divorced_spouse`) **never** merge or split Family Networks.
+2. **Duplication Protection:** Logic prevents creating multiple identical active relationships, and correctly handles symmetry (e.g. `A spouse B` is identical to `B spouse A`).
+3. **Historical Preservation:** Deleting an active relationship is supported, but transitioning to a historical state (e.g. `is_current = false`, `end_date = 2020`) is preferred for divorces to preserve the genealogical tree.
+
+### Authorization Model
+To create, update, or delete a relationship, a User must have authorized access to **both** canonical People. A user gains legitimate access if:
+* The user created or claimed the Person.
+* The user is in a Family Network where the Person is a member.
+
+### Endpoints
+* `POST /api/v1/relationships` - Connect two existing People.
+* `GET /api/v1/relationships` - List accessible relationships (can filter by `person_id` or `relationship_type`).
+* `GET /api/v1/relationships/{id}` - Fetch relationship details safely.
+* `PATCH /api/v1/relationships/{id}` - Update status and dates (e.g., divorce workflow).
+* `DELETE /api/v1/relationships/{id}` - Hard delete a relationship (preserves People).
+
+---
+
+## 8. Relationship Graph Engine (Phase 6)
+
+The Relationship Graph Engine provides an intelligent, read-only layer over canonical People and Relationships. It dynamically traverses paths (using cycle-protected BFS) to derive human-readable kinship (e.g., grandparent, cousin, uncle, nephew) without ever writing derived relationships to the database.
+
+### Key Graph Behaviors
+* **Derived Kinship:** Automatically infers `grandparent`, `grandchild`, `uncle_or_aunt`, `nephew_or_niece`, `first_cousin`, and shared-parent `sibling` relationships at runtime.
+* **Pathfinding:** Solves "How am I related to X?" by calculating the shortest authorized edge-path between two Person nodes.
+* **Historical Awareness:** Graph queries prioritize current active relationships but can seamlessly traverse historical edges (e.g., `former_spouse`) when requested.
+* **Strict Read-Only:** The engine guarantees zero database mutation during traversal. No `family_members` rows or new `relationships` rows are ever inserted.
+* **Authorization Boundaries:** Traversal only spans nodes the user has authorized access to. Attempting to traverse into an inaccessible family network halts and returns a privacy-preserving `404 Not Found`.
+
+### Graph Endpoints
+* `GET /api/v1/relationships/how-related/{person_id}` - Returns the shortest path and kinship label from the user's claimed profile.
+* `GET /api/v1/relationships/path/{person_id}` - Same as above.
+* `GET /api/v1/people/{person_id}/relationships` - Direct edges around a node.
+* `GET /api/v1/people/{person_id}/ancestors` - Upward traversal.
+* `GET /api/v1/people/{person_id}/descendants` - Downward traversal.
+* `GET /api/v1/people/{person_id}/siblings` - Explicit siblings and inferred siblings via shared parents.
+
+## 9. Person Claiming & Invitations (Phase 7)
+
+This phase establishes the secure connection between a User account and their canonical Person profile in the graph. The strict rule `ONE REAL HUMAN = ONE CANONICAL PERSON` is enforced.
+
+### Key Workflows
+* **Direct Claiming:** A User creating their own account can create a Person and immediately claim it.
+* **Token-Based Invitations:** Users can invite family members using cryptographically secure tokens.
+* **Conflict Protection:** A User can only claim one Person. A Person can only be claimed by one User. Deceased people cannot be claimed.
+* **Atomic Transactions:** Accepting an invitation securely updates the Person, marks the Invitation accepted, revokes all other pending invitations for that Person, and creates detailed Audit Logs atomically.
+
+### Endpoints
+* `POST /api/v1/people/{id}/claim` - Directly claim a Person (requires creator rights).
+* `POST /api/v1/people/{id}/invitations` - Generate a secure invitation token for a Person.
+* `GET /api/v1/invitations/me` - List your pending/active invitations.
+* `POST /api/v1/invitations/{token}/accept` - Consume token and bind your User account to the Person.
+* `POST /api/v1/invitations/{token}/cancel` - Cancel an invitation (creator only).
+
+## 10. Notification Foundation (Phase 8)
+
+This phase establishes the foundational backend infrastructure for audience targeting and notifications.
+
+### Key Workflows
+* **Audience Isolation:** Family networks are independent. Marriages do not merge notification audiences.
+* **Audience Resolution:** The `AudienceService` deduplicates recipients and enforces strict privacy authorization before generating the recipient snapshots.
+* **Notification State:** Each targeted user has an independent `notification_recipients` record tracking `is_read`, `read_at`, and `dismissed_at`.
+* **Unclaimed People:** Notification target resolution intentionally filters out `Person` records without claimed user accounts to prevent fake notifications or accounts.
+
+### Endpoints
+* `POST /api/v1/notifications` - Create a notification targeting a `family`, `selected_members`, or `user` audience.
+* `GET /api/v1/notifications` - List notifications (with `unread` filtering).
+* `POST /api/v1/notifications/read-all` - Bulk mark notifications read.
+* `POST /api/v1/notifications/{id}/read` - Mark specific notification read.
+* `POST /api/v1/notifications/{id}/unread` - Mark specific notification unread.
+* `POST /api/v1/notifications/{id}/dismiss` - Safely dismiss (soft delete) a notification.
+* `GET /api/v1/notifications/preferences` - Get notification preferences.
+
+---
+
+## 11. Family Events & Activity (Phase 9)
+
+FamilyNest supports a dedicated `Event` domain to record significant dates, gatherings, and family activities. Events can represent birthdays, anniversaries, important dates, announcements, and traditional family events.
+
+**Important Dates:**
+- `birthday`: Represents a Person's birthday.
+- `anniversary`: Represents a milestone (like marriage).
+- `important_date`: General meaningful dates (graduation, memorial, etc.).
+- `family_event`: Structured events like family meetings, weddings.
+- `announcement`: General family announcements with controlled visibility.
+
+**Event Participants:**
+Participants (`EventParticipant`) are canonical `Person` records. A participant does not automatically need to be a claimed `User`. This allows recording an event for an unclaimed relative (e.g., Grandfather). 
+
+**Privacy & Family Isolation:**
+Events follow the strict family isolation architecture. An event is secured via an `EventTarget` (audience).
+- A Father's family event is invisible to the Mother's family unless explicitly shared.
+- Marriage does not merge event visibility. 
+- You can target specific families, selected members, or just the current user.
+
+**Family Activity:**
+The `Activity` model records lightweight audit trails for major domain changes (e.g., event created, person joined family) to power a future dashboard. 
+- Activity is derived from canonical domain objects.
+- Activity feed visibility mirrors the underlying object's visibility rules.
+- Activity is not a global social media feed.
+
+## 12. Profile, Privacy & Dashboard (Phase 10)
+
+This phase finalizes the backend foundation, providing unified dashboards and explicit privacy controls.
+
+**Privacy Architecture:**
+FamilyNest is private-by-design. The `PersonPrivacySettings` model enforces field-level visibility (`private`, `family`, `public`/`selected`) on sensitive properties.
+- **Sensitive Fields:** `phone`, `email`, `date_of_birth`, and `bio`.
+- **Dynamic Redaction:** The API (`SafePersonSummary`) automatically strips sensitive data depending on the viewer's authorization and the profile owner's privacy settings. Unclaimed profiles default to `private` for sensitive data.
+
+**Dashboard Aggregation:**
+The `/api/v1/dashboard` endpoint acts as an aggregation layer over existing domain APIs.
+- It aggregates Profile Summaries, Relationship Counts (parents, children, siblings, spouses), Upcoming Events, and Recent Activity.
+- It is bound by limits to avoid N+1 queries.
+- It strictly preserves Family Separation (e.g., Mother's family and Father's family remain distinct lists).
+
+**Completeness Validation:**
+A dynamic profile completeness checker helps guide users to fill out essential information (name, dob, bio, profile photo).
+
+---
+
+## 13. Environment & Database Configuration
 
 ### Environment Setup
 FamilyNest uses environment variables for all configuration.
 
 Copy the template file to `.env`:
 ```bash
-cp .env.example .env
+cp backend/.env.example backend/.env
 ```
 
 Configure parameters in `.env`:
@@ -178,7 +356,7 @@ DATABASE_URL=postgresql+psycopg://<user>:<password>@<host>/<database>?sslmode=re
 
 ---
 
-## 6. Database Migrations (Alembic)
+## 14. Database Migrations (Alembic)
 
 Alembic manages all schema migrations dynamically reading `DATABASE_URL` from `.env`.
 
@@ -207,9 +385,9 @@ python -m app.db.verify_db
 
 ---
 
-## 7. Running Tests
+## 15. Running Tests
 
-Execute the complete test suite (39 tests covering database integrity, constraints, health checks, and authentication):
+Execute the complete test suite (157 tests covering database integrity, authentication, people domain, family network, relationships, graph engine traversal, person claiming, notifications, events, privacy, and health checks):
 ```bash
 cd backend
 pytest -v

@@ -170,3 +170,92 @@ def update_person(
         data=body,
         user_id=current_user.id,
     )
+
+
+from app.schemas.invitation import PersonClaimResponse, InvitationCreate, InvitationDetailResponse
+from app.services.person_claim_service import PersonClaimService
+
+
+@router.post(
+    "/{person_id}/claim",
+    response_model=PersonClaimResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Claim a Person profile",
+    description="Directly claim a person profile that you are authorized to access.",
+)
+def claim_person(
+    person_id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> PersonClaimResponse:
+    """Claim a canonical Person profile."""
+    service = PersonClaimService(db)
+    return service.claim_person(
+        user_id=current_user.id,
+        person_id=person_id,
+    )
+
+
+@router.post(
+    "/{person_id}/invitations",
+    response_model=InvitationDetailResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Create an invitation for a Person",
+    description="Create a secure invitation token to allow another user to claim this person.",
+)
+def create_person_invitation(
+    person_id: uuid.UUID,
+    invitation: InvitationCreate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> InvitationDetailResponse:
+    """Create a claim invitation for a Person."""
+    service = PersonClaimService(db)
+    return service.create_invitation(
+        user_id=current_user.id,
+        person_id=person_id,
+        data=invitation,
+    )
+
+
+@router.delete(
+    "/{person_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Delete a Person",
+)
+def delete_person(
+    person_id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Delete a person record. Only the person who created the profile can delete it.
+    Cascades to relationships, employments, educations etc via DB constraints."""
+    from app.db.models.person import Person
+    from app.db.models.relationship import Relationship
+    from app.db.models.employment import Employment
+    from app.db.models.education import Education
+    from fastapi import HTTPException
+    from sqlalchemy import or_
+
+    person = db.get(Person, person_id)
+    if not person:
+        raise HTTPException(status_code=404, detail="Person not found")
+
+    # Only the creator or the person's claimed user can delete
+    if person.created_by_user_id != current_user.id and person.claimed_by_user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized to delete this person")
+
+    # Cannot delete your own claimed profile
+    if person.claimed_by_user_id == current_user.id:
+        raise HTTPException(status_code=400, detail="You cannot delete your own profile. Update it instead.")
+
+    # Delete related records first
+    db.query(Relationship).filter(
+        or_(Relationship.person_a_id == person_id, Relationship.person_b_id == person_id)
+    ).delete(synchronize_session=False)
+
+    db.query(Employment).filter(Employment.person_id == person_id).delete(synchronize_session=False)
+    db.query(Education).filter(Education.person_id == person_id).delete(synchronize_session=False)
+
+    db.delete(person)
+    db.commit()

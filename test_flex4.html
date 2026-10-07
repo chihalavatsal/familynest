@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+  body { margin: 0; height: 100vh; background: #ccc; display: flex; align-items: center; justify-content: center; font-family: sans-serif; gap: 20px;}
+  .modal-auto { background: white; max-height: 90vh; display: flex; flex-direction: column; width: 200px; height: auto; }
+  
+  .header { height: 50px; background: #eee; flex-shrink: 0; }
+  .wizard-flex1 { flex: 1 1 0%; display: flex; flex-direction: column; min-height: 0; }
+  .wizard-flex-auto { flex: 1 1 auto; display: flex; flex-direction: column; min-height: 0; }
+  
+  .body { flex: 1; overflow-y: auto; min-height: 0; padding: 20px; }
+  .footer { height: 50px; background: #ddd; flex-shrink: 0; }
+  .box { height: 80px; margin-bottom: 10px; background: #aaf; }
+</style>
+</head>
+<body>
+<div class="modal-auto">
+  <div class="header">Flex-1 (0%)</div>
+  <div class="wizard-flex1">
+    <div class="body">
+      <div class="box"></div>
+      <div class="box"></div>
+      <div class="box"></div>
+    </div>
+    <div class="footer">Footer</div>
+  </div>
+</div>
+
+<div class="modal-auto">
+  <div class="header">Flex-auto</div>
+  <div class="wizard-flex-auto">
+    <div class="body">
+      <div class="box"></div>
+      <div class="box"></div>
+      <div class="box"></div>
+    </div>
+    <div class="footer">Footer</div>
+  </div>
+</div>
+</body>
+</html>

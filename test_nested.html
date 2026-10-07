@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<body>
+<style>
+  body { margin: 0; background: #ccc; padding: 20px;}
+  
+  .modal-tall { 
+    background: white; 
+    max-height: 900px;
+    display: flex; 
+    flex-direction: column;
+    width: 200px;
+    overflow: hidden; 
+  }
+
+  .header { height: 50px; background: #eee; flex-shrink: 0; }
+  .footer { height: 50px; background: #ddd; flex-shrink: 0; }
+  
+  .form { display: flex; flex-direction: column; overflow: hidden; min-height: 0; }
+  .wizard { display: flex; flex-direction: column; min-height: 0; }
+  .body { overflow-y: auto; padding: 20px; min-height: 0; }
+  
+  .content { height: 600px; background: linear-gradient(to bottom, #faa, #aaf); }
+</style>
+
+<div class="modal-tall" id="tall">
+  <div class="header">Header</div>
+  <form class="form">
+    <div class="wizard">
+      <div class="body"><div class="content">Tall</div></div>
+      <div class="footer">Footer</div>
+    </div>
+  </form>
+</div>
+
+<script>
+  document.write("<p>Tall height: " + document.getElementById('tall').offsetHeight + " (Expected: 740)</p>");
+</script>
+</body>
+</html>

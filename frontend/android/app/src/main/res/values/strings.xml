@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">FamilyNest</string>
+    <string name="title_activity_main">FamilyNest</string>
+    <string name="package_name">com.familynest.app</string>
+    <string name="custom_url_scheme">com.familynest.app</string>
+</resources>

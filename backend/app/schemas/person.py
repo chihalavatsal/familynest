@@ -58,6 +58,7 @@ class PersonCreate(BaseModel):
 
     # Location
     birth_place: Optional[str] = None
+    death_place: Optional[str] = None
     current_city: Optional[str] = None
 
     # Professional / narrative
@@ -96,7 +97,7 @@ class PersonCreate(BaseModel):
             raise ValueError(f"Name fields must be at most {MAX_NAME_LENGTH} characters")
         return v or None  # convert empty string to None
 
-    @field_validator("birth_place", "current_city", mode="before")
+    @field_validator("birth_place", "death_place", "current_city", mode="before")
     @classmethod
     def strip_place_fields(cls, v: Optional[str]) -> Optional[str]:
         if v is None:
@@ -189,6 +190,7 @@ class PersonUpdate(BaseModel):
     date_of_birth: Optional[date] = None
     date_of_death: Optional[date] = None
     birth_place: Optional[str] = None
+    death_place: Optional[str] = None
     current_city: Optional[str] = None
     occupation: Optional[str] = None
     bio: Optional[str] = None
@@ -221,7 +223,7 @@ class PersonUpdate(BaseModel):
             raise ValueError(f"Name fields must be at most {MAX_NAME_LENGTH} characters")
         return v or None
 
-    @field_validator("birth_place", "current_city", mode="before")
+    @field_validator("birth_place", "death_place", "current_city", mode="before")
     @classmethod
     def strip_place_fields(cls, v: Optional[str]) -> Optional[str]:
         if v is None:
@@ -341,6 +343,7 @@ class PersonDetailResponse(BaseModel):
     date_of_birth: Optional[date] = None
     date_of_death: Optional[date] = None
     birth_place: Optional[str] = None
+    death_place: Optional[str] = None
     current_city: Optional[str] = None
     occupation: Optional[str] = None
     bio: Optional[str] = None

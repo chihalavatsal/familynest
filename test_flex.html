@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+  body { margin: 0; height: 100vh; background: #ccc; display: flex; align-items: center; justify-content: center; }
+  .modal { background: white; max-height: 80vh; display: flex; flex-direction: column; width: 400px; }
+  .header { height: 50px; background: #eee; flex-shrink: 0; }
+  .wizard { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+  .body { flex: 1; overflow-y: auto; min-height: 0; padding: 20px; }
+  .footer { height: 50px; background: #eee; flex-shrink: 0; }
+  .content { height: 600px; background: linear-gradient(to bottom, #faa, #aaf); }
+</style>
+</head>
+<body>
+<div class="modal">
+  <div class="header">Header</div>
+  <div class="wizard">
+    <div class="body">
+      <div class="content">Tall content</div>
+    </div>
+    <div class="footer">Footer</div>
+  </div>
+</div>
+</body>
+</html>

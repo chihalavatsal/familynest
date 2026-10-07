@@ -28,33 +28,10 @@ from app.core.security import (
 )
 
 
-@pytest.fixture(scope="function")
-def db_session():
-    """Provides a transactional database session that rolls back after each test."""
-    connection = engine.connect()
-    transaction = connection.begin()
-    session = SessionLocal(bind=connection)
-
-    yield session
-
-    session.close()
-    transaction.rollback()
-    connection.close()
 
 
-@pytest.fixture(scope="function")
-def client(db_session):
-    """TestClient that uses the transactional db_session for zero database pollution."""
-    def override_get_db():
-        try:
-            yield db_session
-        finally:
-            pass
 
-    app.dependency_overrides[get_db] = override_get_db
-    with TestClient(app) as c:
-        yield c
-    app.dependency_overrides.clear()
+
 
 
 # ==============================================================================

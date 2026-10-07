@@ -11,6 +11,7 @@ from sqlalchemy import select, func, or_
 from sqlalchemy.orm import Session
 
 from app.db.models.person import Person
+from app.db.models.family import FamilyMember
 
 # Whitelist of fields permitted for ORDER BY
 ALLOWED_SORT_FIELDS = {"first_name", "last_name", "created_at", "date_of_birth"}
@@ -107,8 +108,16 @@ class PersonRepository:
         page_size = max(page_size, 1)
         page = max(page, 1)
 
-        # Base filter: creator-only access
-        base_filter = Person.created_by_user_id == user_id
+        # Base filter: Shared Family Network Access
+        subq_my_person = select(Person.id).where(Person.claimed_by_user_id == user_id).scalar_subquery()
+        subq_my_families = select(FamilyMember.family_id).where(FamilyMember.person_id == subq_my_person).scalar_subquery()
+        subq_shared_people = select(FamilyMember.person_id).where(FamilyMember.family_id.in_(subq_my_families)).scalar_subquery()
+
+        base_filter = or_(
+            Person.created_by_user_id == user_id,
+            Person.claimed_by_user_id == user_id,
+            Person.id.in_(subq_shared_people)
+        )
 
         # Optional search across name fields (parameterized — no f-string interpolation)
         if search:

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<style>
+  body { margin: 0; padding: 20px; background: #eee; font-family: sans-serif; }
+  .modal-outer {
+    position: fixed; inset: 0; z-index: 100;
+    display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 1.5rem;
+  }
+  .modal-inner {
+    background: white; width: 100%; max-width: 640px; border-radius: 1rem;
+    display: flex; flex-direction: column; min-height: 0; overflow: hidden;
+    height: calc(100vh - 48px);
+  }
+  .header { padding: 1.5rem 2rem; border-bottom: 1px solid #ddd; flex-shrink: 0; }
+  .wizard-wrapper { display: flex; flex-direction: column; flex: 1 1 0%; min-height: 0; overflow: hidden; }
+  .body { padding: 1.5rem 2rem; overflow-y: auto; flex: 1 1 0%; min-height: 0; }
+  .footer { padding: 1.25rem 2rem; border-top: 1px solid #ddd; flex-shrink: 0; display: flex; justify-content: space-between; }
+  
+  .content-inner { max-width: 32rem; margin: 0 auto; padding-bottom: 1rem; }
+  .progress { display: flex; justify-content: space-between; margin-bottom: 2rem; }
+  .circle { width: 32px; height: 32px; border-radius: 50%; background: #ccc; }
+  
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
+  .card { height: 60px; background: #fafafa; border: 1px solid #ddd; border-radius: 0.5rem; }
+</style>
+<body>
+<div class="modal-outer">
+  <div class="modal-inner" id="modal">
+    <div class="header">Header</div>
+    <div class="wizard-wrapper">
+      <div class="body">
+        <div class="content-inner">
+          <div class="progress">
+            <div class="circle"></div><div class="circle"></div><div class="circle"></div>
+          </div>
+          <h2>Who are you adding?</h2>
+          <div style="margin-bottom: 1.5rem;">Immediate Family</div>
+          <div class="grid" style="margin-bottom: 1.5rem;">
+            <div class="card"></div><div class="card"></div><div class="card"></div>
+            <div class="card"></div><div class="card"></div><div class="card"></div>
+            <div class="card"></div><div class="card"></div>
+          </div>
+          <div style="margin-bottom: 1.5rem;">Extended Family</div>
+          <div class="grid" style="margin-bottom: 1.5rem;">
+            <div class="card"></div><div class="card"></div><div class="card"></div>
+            <div class="card"></div><div class="card"></div><div class="card"></div>
+            <div class="card"></div><div class="card"></div><div class="card"></div>
+          </div>
+          <div style="margin-bottom: 1.5rem;">Other</div>
+          <div class="grid">
+            <div class="card"></div><div class="card"></div>
+          </div>
+        </div>
+      </div>
+      <div class="footer">
+        <button>Cancel</button><button>Next</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  document.write("<p style='position:absolute;z-index:1000;background:yellow;'>Body scroll height: " + document.querySelector('.body').scrollHeight + "</p>");
+</script>
+</body>
+</html>

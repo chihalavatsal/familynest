@@ -1,41 +1,50 @@
-from uuid import UUID
+import uuid
 from datetime import datetime
-from typing import Optional, Literal
-from pydantic import BaseModel, ConfigDict, field_validator
-import re
+from typing import Optional, List
+from pydantic import BaseModel, ConfigDict, Field
 
-EMAIL_REGEX = re.compile(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$")
+from app.schemas.relationship_graph import PersonListItem
 
-InvitationStatus = Literal["pending", "accepted", "expired", "cancelled"]
+# We'll use simple string constants for types
+INVITATION_TYPE_CLAIM = "person_claim"
 
 
-class InvitationBase(BaseModel):
-    family_id: Optional[UUID] = None
-    person_id: UUID
+class InvitationCreate(BaseModel):
+    """Payload to create an invitation."""
     invited_email: Optional[str] = None
     invited_phone: Optional[str] = None
-    status: InvitationStatus = "pending"
-    expires_at: Optional[datetime] = None
-
-    @field_validator("invited_email", mode="before")
-    @classmethod
-    def validate_invited_email(cls, v: Optional[str]) -> Optional[str]:
-        if isinstance(v, str):
-            v = v.strip().lower()
-            if v and not EMAIL_REGEX.match(v):
-                raise ValueError("Invalid email format")
-            return v or None
-        return v
+    invitation_type: str = Field(default=INVITATION_TYPE_CLAIM, description="Type of invitation")
 
 
-class InvitationCreate(InvitationBase):
-    pass
+class InvitationResponse(BaseModel):
+    """Safe public representation of an invitation."""
+    model_config = ConfigDict(from_attributes=True)
 
-
-class InvitationResponse(InvitationBase):
-    id: UUID
-    invited_by_user_id: UUID
-    invitation_token: str
+    id: uuid.UUID
+    family_id: Optional[uuid.UUID]
+    person: PersonListItem
+    invited_by_user_id: uuid.UUID
+    invited_email: Optional[str]
+    invited_phone: Optional[str]
+    invitation_type: str
+    status: str
+    expires_at: Optional[datetime]
     created_at: datetime
 
+
+class InvitationDetailResponse(InvitationResponse):
+    """Detailed view might include the token ONLY immediately after creation."""
+    invitation_token: Optional[str] = None
+
+
+class InvitationListResponse(BaseModel):
+    """Paginated list of invitations."""
+    items: List[InvitationResponse]
+    total: int
+
+
+class PersonClaimResponse(BaseModel):
+    """Response after successfully claiming a person."""
     model_config = ConfigDict(from_attributes=True)
+    person: PersonListItem
+    claimed: bool = True

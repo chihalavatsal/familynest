@@ -28,6 +28,7 @@ class UserRepository:
         display_name: Optional[str] = None,
         is_active: bool = True,
         is_verified: bool = False,
+        **kwargs
     ) -> User:
         """Create and persist a new User record."""
         user = User(
@@ -36,6 +37,8 @@ class UserRepository:
             display_name=display_name.strip() if display_name else None,
             is_active=is_active,
             is_verified=is_verified,
+            otp_code=kwargs.get('otp_code'),
+            otp_expires_at=kwargs.get('otp_expires_at'),
         )
         self.db.add(user)
         self.db.commit()

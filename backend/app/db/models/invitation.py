@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from typing import Optional
 from sqlalchemy import String, Text, TIMESTAMP, ForeignKey, CheckConstraint
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.models.base import Base
 
 ALLOWED_INVITATION_STATUSES = ('pending', 'accepted', 'expired', 'cancelled')
@@ -52,6 +52,11 @@ class Invitation(Base):
         String(50),
         nullable=True,
     )
+    invitation_type: Mapped[str] = mapped_column(
+        String(50),
+        nullable=False,
+        server_default="person_claim",
+    )
     invitation_token: Mapped[str] = mapped_column(
         Text,
         unique=True,
@@ -72,6 +77,8 @@ class Invitation(Base):
         default=lambda: datetime.now(timezone.utc),
         nullable=False,
     )
+
+    person: Mapped["Person"] = relationship("Person")
 
     def __repr__(self) -> str:
         return f"<Invitation id={self.id} person_id={self.person_id} status={self.status}>"

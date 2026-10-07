@@ -7,7 +7,22 @@
     <meta name="description" content="FamilyNest - A private digital home for families. People + Relationships + Family Networks." />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <title>FamilyNest — Private Digital Home for Families</title>
-  </head>
+  
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="FamilyNest">
+    <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
+
+    <script>
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+          for(let registration of registrations) {
+            registration.unregister();
+          }
+        });
+      }
+    </script>
+</head>
   <body class="bg-family-50 text-slate-900 antialiased min-h-screen selection:bg-family-200">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>

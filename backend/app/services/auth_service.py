@@ -1,3 +1,5 @@
+import random
+from datetime import datetime, timezone, timedelta
 import uuid
 import logging
 from typing import Optional
@@ -50,13 +52,25 @@ class AuthService:
         hashed_password = get_password_hash(req.password)
 
         logger.info(f"Registering new user account: {normalized_email[:3]}***@{normalized_email.split('@')[-1]}")
+
+        otp = f"{random.randint(100000, 999999)}"
+        expires = datetime.now(timezone.utc) + timedelta(minutes=15)
+        
         user = self.user_repo.create(
             email=normalized_email,
             password_hash=hashed_password,
             display_name=req.display_name,
             is_active=True,
             is_verified=False,
+            otp_code=otp,
+            otp_expires_at=expires
         )
+
+        
+        # In a real app, you would send an email here. For now, print to console!
+        logger.info(f"\n\n==================================================\nOTP FOR {normalized_email}: {otp}\n==================================================\n\n")
+        logger.info(f"Generated verification OTP for {normalized_email[:3]}...")
+        
         return user
 
     def authenticate(self, req: LoginRequest) -> User:
@@ -77,7 +91,7 @@ class AuthService:
             logger.info(f"Authentication failed: invalid password for user_id={user.id}")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Incorrect email or password",
+                detail="Incorrect password",
                 headers={"WWW-Authenticate": "Bearer"},
             )
 
@@ -86,6 +100,13 @@ class AuthService:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Account is inactive. Please contact support.",
+            )
+            
+        if not user.is_verified:
+            logger.warning(f"Authentication rejected: user_id={user.id} account is not verified")
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Account is not verified. Please verify your email first.",
             )
 
         logger.info(f"Authentication successful for user_id={user.id}")

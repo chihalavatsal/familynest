@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<style>
+  .modal { 
+    max-height: 400px;
+    height: auto;
+    display: flex; 
+    flex-direction: column; 
+    width: 200px; 
+    background: white; border: 1px solid black;
+  }
+  .header { height: 50px; background: #eee; flex-shrink: 0; }
+  .body { overflow-y: auto; padding: 20px; flex: 1 1 auto; min-height: 0; }
+  .content { height: 600px; background: linear-gradient(#faa, #aaf); }
+</style>
+<body>
+<div class="modal" id="modal">
+  <div class="header">Header</div>
+  <div class="body">
+    <div class="content">Tall</div>
+  </div>
+</div>
+<script>
+  document.write("<p>Height: " + document.getElementById('modal').offsetHeight + "</p>");
+</script>
+</body>
+</html>

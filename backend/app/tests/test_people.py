@@ -56,33 +56,10 @@ from app.core.security import get_password_hash, create_access_token
 # Fixtures
 # =============================================================================
 
-@pytest.fixture(scope="function")
-def db_session():
-    """Transactional session that rolls back after each test (protects Neon data)."""
-    connection = engine.connect()
-    transaction = connection.begin()
-    session = SessionLocal(bind=connection)
-
-    yield session
-
-    session.close()
-    transaction.rollback()
-    connection.close()
 
 
-@pytest.fixture(scope="function")
-def client(db_session):
-    """TestClient with db_session override — zero database pollution."""
-    def override_get_db():
-        try:
-            yield db_session
-        finally:
-            pass
 
-    app.dependency_overrides[get_db] = override_get_db
-    with TestClient(app) as c:
-        yield c
-    app.dependency_overrides.clear()
+
 
 
 def _make_user(db_session, *, email: str = None, display_name: str = "Test User") -> User:

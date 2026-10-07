@@ -47,6 +47,14 @@ class User(Base):
         default=False,
         nullable=False,
     )
+    otp_code: Mapped[Optional[str]] = mapped_column(
+        String(10),
+        nullable=True,
+    )
+    otp_expires_at: Mapped[Optional[datetime]] = mapped_column(
+        TIMESTAMP(timezone=True),
+        nullable=True,
+    )
     created_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=True),
         default=lambda: datetime.now(timezone.utc),
