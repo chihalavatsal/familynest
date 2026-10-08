@@ -1,3 +1,4 @@
+from app.services.authz_service import AuthzService
 """Person Service: Business logic layer for the People domain.
 
 Enforces:
@@ -136,12 +137,14 @@ class PersonService:
         Returns 404 if the person does not exist OR is not accessible to this user.
         This is intentionally privacy-preserving (do not leak existence).
         """
-        person = self.repo.get_accessible_by_id(person_id, user_id)
-        if person is None:
+        authz = AuthzService(self.db)
+        if not authz.can_read_person(user_id, person_id):
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Person not found",
             )
+        
+        person = self.repo.get_by_id(person_id)
         return PersonDetailResponse.model_validate(person)
 
     # ------------------------------------------------------------------
