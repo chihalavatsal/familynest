@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import Optional, List
 from pydantic import BaseModel, ConfigDict, Field
 
-from app.schemas.relationship_graph import PersonListItem
+from app.schemas.person import PersonListItem
 
 # We'll use simple string constants for types
 INVITATION_TYPE_CLAIM = "person_claim"

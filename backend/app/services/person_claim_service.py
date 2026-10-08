@@ -20,7 +20,7 @@ from app.schemas.invitation import (
     PersonClaimResponse,
     INVITATION_TYPE_CLAIM,
 )
-from app.schemas.relationship_graph import PersonListItem
+from app.schemas.person import PersonListItem
 from app.services.email_service import email_service
 from app.core.config import settings
 
