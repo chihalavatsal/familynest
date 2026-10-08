@@ -350,6 +350,7 @@ class PersonClaimService:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Person is already claimed by another user.")
 
         person.claimed_by_user_id = user_id
+        person.profile_status = "claimed"
         invitation.status = "accepted"
 
         # Cancel others
