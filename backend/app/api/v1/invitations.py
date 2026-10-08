@@ -78,9 +78,3 @@ def accept_invitation_combined(
         return service.accept_invitation_by_id(user_id=current_user.id, invitation_id=inv_id)
     except ValueError:
         return service.accept_invitation(user_id=current_user.id, raw_token=identifier)
-    invitation_id: uuid.UUID,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
-) -> PersonClaimResponse:
-    service = PersonClaimService(db)
-    return service.accept_invitation_by_id(user_id=current_user.id, invitation_id=invitation_id)
