@@ -62,26 +62,22 @@ def cancel_invitation(
 
 
 @router.post(
-    "/{token}/accept",
+    "/{identifier}/accept",
     response_model=PersonClaimResponse,
     status_code=status.HTTP_200_OK,
     summary="Accept Invitation",
 )
-def accept_invitation(
-    token: str,
+def accept_invitation_combined(
+    identifier: str,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> PersonClaimResponse:
     service = PersonClaimService(db)
-    return service.accept_invitation(user_id=current_user.id, raw_token=token)
-
-@router.post(
-    "/{invitation_id}/accept",
-    response_model=PersonClaimResponse,
-    status_code=status.HTTP_200_OK,
-    summary="Accept Invitation by ID",
-)
-def accept_invitation_by_id(
+    try:
+        inv_id = uuid.UUID(identifier)
+        return service.accept_invitation_by_id(user_id=current_user.id, invitation_id=inv_id)
+    except ValueError:
+        return service.accept_invitation(user_id=current_user.id, raw_token=identifier)
     invitation_id: uuid.UUID,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
