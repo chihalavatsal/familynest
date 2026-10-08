@@ -169,8 +169,8 @@ class RelationshipGraphService:
         
         if source.id == target_id:
             return KinshipResult(
-                source_person=PersonListItem(id=source.id, first_name=source.first_name, last_name=source.last_name),
-                target_person=PersonListItem(id=source.id, first_name=source.first_name, last_name=source.last_name),
+                source_person=self._build_person_summary(source.id),
+                target_person=self._build_person_summary(source.id),
                 relationship="self",
                 distance=0,
                 path=[]
@@ -189,8 +189,8 @@ class RelationshipGraphService:
             # No connection
             target_p = self.db.execute(select(Person).where(Person.id == target_id)).scalar_one()
             return KinshipResult(
-                source_person=PersonListItem(id=source.id, first_name=source.first_name, last_name=source.last_name),
-                target_person=PersonListItem(id=target_p.id, first_name=target_p.first_name, last_name=target_p.last_name),
+                source_person=self._build_person_summary(source.id),
+                target_person=self._build_person_summary(target_p.id),
                 relationship=None,
                 distance=0,
                 path=[]
@@ -209,7 +209,7 @@ class RelationshipGraphService:
         kinship = self._derive_kinship_label(labels)
         
         return KinshipResult(
-            source_person=PersonListItem(id=source.id, first_name=source.first_name, last_name=source.last_name),
+            source_person=self._build_person_summary(source.id),
             target_person=self._build_person_summary(target_id),
             relationship=kinship,
             distance=len(path),
