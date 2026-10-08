@@ -9,15 +9,6 @@ from pydantic import BaseModel, ConfigDict
 
 from app.schemas.person import SafePersonSummary
 
-class SafePersonSummary(BaseModel):
-    """A safe summary of a Person node in the graph."""
-    id: UUID
-    first_name: str
-    last_name: Optional[str] = None
-    
-    model_config = ConfigDict(from_attributes=True)
-
-
 class RelationshipPathNode(BaseModel):
     """A single step in a relationship path."""
     person: SafePersonSummary
