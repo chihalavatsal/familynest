@@ -7,11 +7,11 @@ from typing import Optional, List
 from pydantic import BaseModel, ConfigDict
 
 
-from app.schemas.person import SafePersonSummary
+from app.schemas.person import PersonListItem
 
 class RelationshipPathNode(BaseModel):
     """A single step in a relationship path."""
-    person: SafePersonSummary
+    person: PersonListItem
     relationship: str  # The edge label from the previous node to this node
 
 
@@ -23,8 +23,8 @@ class RelationshipPath(BaseModel):
 
 class KinshipResult(BaseModel):
     """The result of a kinship query like 'how am I related?'"""
-    source_person: SafePersonSummary
-    target_person: SafePersonSummary
+    source_person: PersonListItem
+    target_person: PersonListItem
     relationship: Optional[str] = None
     distance: int
     path: List[RelationshipPathNode]
@@ -32,7 +32,7 @@ class KinshipResult(BaseModel):
 
 class RelatedPersonItem(BaseModel):
     """A related person (e.g. an ancestor or descendant) and their distance."""
-    person: SafePersonSummary
+    person: PersonListItem
     relationship: Optional[str] = None
     distance: int
     path: List[RelationshipPathNode]

@@ -1,36 +1,28 @@
-import re
+import os
+
 with open('backend/app/api/v1/auth.py', 'r') as f:
     code = f.read()
 
-new_reset = """
-@router.post("/reset-password", summary="Reset password using OTP")
-def reset_password(req: ResetPasswordRequest, db: Session = Depends(get_db)):
-    print(f"RESET REQUEST RECEIVED: {req}")
-    user = db.query(User).filter(User.email == req.email.lower().strip()).first()
-    if not user:
-        print("User not found!")
-        raise HTTPException(status_code=400, detail="Invalid request")
-        
-    if not user.otp_code or user.otp_code != req.otp_code:
-        print(f"OTP Mismatch! DB OTP: {user.otp_code}, REQ OTP: {req.otp_code}")
-        raise HTTPException(status_code=400, detail="Invalid or expired reset code")
-        
-    from datetime import datetime, timezone
-    if not user.otp_expires_at or user.otp_expires_at < datetime.now(timezone.utc):
-        print(f"OTP Expired! Exp: {user.otp_expires_at}, Now: {datetime.now(timezone.utc)}")
-        raise HTTPException(status_code=400, detail="Reset code has expired")
-        
-    from app.services.auth_service import get_password_hash
-    user.password_hash = get_password_hash(req.new_password)
-    user.otp_code = None
-    user.otp_expires_at = None
-    db.commit()
-    print("RESET SUCCESSFUL!")
+# Replace the email sending part in forgot_password
+old_code = """
+    from app.services.email_service import email_service
+    email_service.send_otp_email(to_email=user.email, otp=otp, context="password_reset")
     
-    return {"message": "Password has been reset successfully. You can now log in."}
+    return {"message": "Verification code has been sent to your email."}
 """
 
-code = re.sub(r'@router.post\("/reset-password".*?return {"message": "Password has been reset successfully\. You can now log in\."}', new_reset, code, flags=re.DOTALL)
+new_code = """
+    from app.services.email_service import email_service
+    success = email_service.send_otp_email(to_email=user.email, otp=otp, context="password_reset")
+    
+    if not success:
+        import traceback
+        return {"message": "Verification code has been sent to your email.", "debug_email_status": "FAILED", "is_configured": getattr(email_service, 'is_configured', False)}
+    
+    return {"message": "Verification code has been sent to your email.", "debug_email_status": "SUCCESS"}
+"""
 
-with open('backend/app/api/v1/auth.py', 'w') as f:
-    f.write(code)
+if "debug_email_status" not in code:
+    code = code.replace(old_code, new_code)
+    with open('backend/app/api/v1/auth.py', 'w') as f:
+        f.write(code)

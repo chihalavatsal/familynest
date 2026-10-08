@@ -1,4 +1,5 @@
-from app.schemas.person import SafePersonSummary
+from app.schemas.person import PersonListItem
+
 """Relationship Graph Service — Phase 6.
 
 Read-only graph intelligence layer for calculating dynamic kinship.
@@ -15,7 +16,7 @@ from app.db.models.person import Person
 from app.db.models.relationship import Relationship
 from app.services.relationship_service import RelationshipService
 from app.schemas.relationship_graph import (
-    SafePersonSummary,
+    PersonListItem,
     RelationshipPathNode,
     KinshipResult,
     RelatedPersonItem,
@@ -108,9 +109,9 @@ class RelationshipGraphService:
         }
         return mapping.get(s, "relative")
 
-    def _build_person_summary(self, person_id: uuid.UUID) -> SafePersonSummary:
+    def _build_person_summary(self, person_id: uuid.UUID) -> PersonListItem:
         p = self._people_cache[person_id]
-        return SafePersonSummary.model_validate(p)
+        return PersonListItem.model_validate(p)
 
     def _bfs_path(self, start_id: uuid.UUID, target_id: uuid.UUID, max_depth: int) -> Optional[List[Tuple[uuid.UUID, str]]]:
         """Finds the shortest path between start and target using BFS."""
@@ -168,8 +169,8 @@ class RelationshipGraphService:
         
         if source.id == target_id:
             return KinshipResult(
-                source_person=SafePersonSummary(id=source.id, first_name=source.first_name, last_name=source.last_name),
-                target_person=SafePersonSummary(id=source.id, first_name=source.first_name, last_name=source.last_name),
+                source_person=PersonListItem(id=source.id, first_name=source.first_name, last_name=source.last_name),
+                target_person=PersonListItem(id=source.id, first_name=source.first_name, last_name=source.last_name),
                 relationship="self",
                 distance=0,
                 path=[]
@@ -188,8 +189,8 @@ class RelationshipGraphService:
             # No connection
             target_p = self.db.execute(select(Person).where(Person.id == target_id)).scalar_one()
             return KinshipResult(
-                source_person=SafePersonSummary(id=source.id, first_name=source.first_name, last_name=source.last_name),
-                target_person=SafePersonSummary(id=target_p.id, first_name=target_p.first_name, last_name=target_p.last_name),
+                source_person=PersonListItem(id=source.id, first_name=source.first_name, last_name=source.last_name),
+                target_person=PersonListItem(id=target_p.id, first_name=target_p.first_name, last_name=target_p.last_name),
                 relationship=None,
                 distance=0,
                 path=[]
@@ -208,7 +209,7 @@ class RelationshipGraphService:
         kinship = self._derive_kinship_label(labels)
         
         return KinshipResult(
-            source_person=SafePersonSummary(id=source.id, first_name=source.first_name, last_name=source.last_name),
+            source_person=PersonListItem(id=source.id, first_name=source.first_name, last_name=source.last_name),
             target_person=self._build_person_summary(target_id),
             relationship=kinship,
             distance=len(path),
