@@ -97,10 +97,10 @@ export function PersonForm({
 
   const validate = () => {
     const errs: Partial<Record<keyof PersonFormValues, string>> = {};
-    if (!values.first_name.trim()) {
+    if (!values.first_name || !values.first_name.trim()) {
       errs.first_name = 'First name is required';
     }
-    if (values.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email.trim())) {
+    if (values.email && values.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email.trim())) {
       errs.email = 'Invalid email address';
     }
     if (values.date_of_birth && values.date_of_death) {
